@@ -12,25 +12,30 @@ static void sighandler(int signo) {
 }
 
 int main() {
-  int from_client = server_setup();
-  char buffer[BUFFER_SIZE];
-  while (1) {   
-    int to_client = server_connect(from_client);
-    read(to_client, buffer, sizeof(buffer));
-    printf("Sending: %s\n", buffer); 
+  while (1) {
+    int from_client = server_setup();
+    int parent = fork();
+    if (parent) {
+      remove("luigi");
+      close(from_client);
+    }
+    else {
+      subserver(from_client);
+    }
   }
 }
 
 void subserver(int from_client) {
-  int parent = fork();
-  if (parent) {
-    //server_setup();
-  }
-  else {
-    server_connect(from_client);
-  }
+  int to_client = server_connect(from_client);
+  char buffer[BUFFER_SIZE];
 
+  while (read(from_client, buffer, sizeof(buffer))) {
+    printf("Processing\n");
+    process(buffer);
+    write(to_client, buffer, sizeof(buffer));
+  }
 }
 
-void process(char * s) {
+void process(char *s) {
+  s = ":)";
 }
